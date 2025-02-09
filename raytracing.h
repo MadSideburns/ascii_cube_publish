@@ -24,41 +24,41 @@ public:
 //member methods
     Vector3D();                                     //default constructon
     Vector3D(float x, float y, float z);            //initializer constructor
-    Vector3D(const Vector3D&);                      //copy constructor
-    Vector3D& operator=(const Vector3D&);           //assignment operator
+    Vector3D(const Vector3D& vec);                  //copy constructor
+    Vector3D& operator=(const Vector3D& rhs);       //assignment operator
     //vector properties and manipulation
     float norm2() const;
     float norm() const;
     Vector3D& normalize();
 
     //vector operations
-    float dot(const Vector3D&) const;
-    Vector3D cross(const Vector3D&) const;
+    float dot(const Vector3D& other) const;
+    Vector3D cross(const Vector3D& other) const;
 
     //arithmetic overloading
     Vector3D& operator+();                          //unary +
-    Vector3D operator+(const Vector3D&) const;      //binary +
-    Vector3D& operator+=(const Vector3D&);          //
+    Vector3D operator+(const Vector3D& vec) const;  //binary +
+    Vector3D& operator+=(const Vector3D& vec);      //
     Vector3D operator-() const;                     //unary -
-    Vector3D operator-(const Vector3D&) const;      //binary -
-    Vector3D& operator-=(const Vector3D&);          //
-    Vector3D operator*(float) const;                //scalar mult *
-    Vector3D& operator*=(float);                    //
-    Vector3D operator/(float) const;                //scalar div /
-    Vector3D& operator/=(float);                    //
+    Vector3D operator-(const Vector3D& vec) const;  //binary -
+    Vector3D& operator-=(const Vector3D& vec);      //
+    Vector3D operator*(float num) const;            //scalar mult *
+    Vector3D& operator*=(float num);                //
+    Vector3D operator/(float num) const;            //scalar div /
+    Vector3D& operator/=(float num);                //
 
     //rotation in space
-    Vector3D& rotate(const RotationMatrix&);
+    Vector3D& rotate(const RotationMatrix& rotation);
 
     //utility
     void print() const;
 
     //subscript operator
-    float operator[](int) const;                    //member access
-    float& operator[](int);                         //member assignment
+    float operator[](int index) const;                    //member access
+    float& operator[](int index);                         //member assignment
 };
 
-Vector3D operator*(float, const Vector3D&);         //scalar * vector mult
+Vector3D operator*(float num, const Vector3D& vec);       //scalar * vector mult
 
 //vector basis constants
 const Vector3D ex = {1, 0, 0}, ey = {0, 1, 0}, ez = {0, 0, 1};
@@ -71,18 +71,18 @@ public:
     const int dim = 3;
     float R[3][3];
 public:
-    RotationMatrix();                                   //default constructor
-    RotationMatrix(const Vector3D&, float);             //axis - angle constructor      
-    RotationMatrix(const RotationMatrix&);              //copy constructor
-    RotationMatrix& operator=(const RotationMatrix&);   //assignment
+    RotationMatrix();                                       //default constructor
+    RotationMatrix(const Vector3D& axis, float angle);      //axis - angle constructor      
+    RotationMatrix(const RotationMatrix& rotation);         //copy constructor
+    RotationMatrix& operator=(const RotationMatrix& rhs);   //assignment
 
     //mathematical operations (just rotation group)
-    RotationMatrix operator*(const RotationMatrix&) const;  //rotation composition
-    RotationMatrix& operator*=(const RotationMatrix&);      //composition - assign
-    Vector3D operator*(const Vector3D&) const;              //action on vector
+    RotationMatrix operator*(const RotationMatrix& rotation) const;     //rotation composition
+    RotationMatrix& operator*=(const RotationMatrix& rotation);         //composition - assign
+    Vector3D operator*(const Vector3D& vec) const;                      //action on vector
 
     //subscript operator (only access)
-    const float* operator[](int) const;
+    const float* operator[](int index) const;
 
     void print() const;
 };
@@ -96,14 +96,14 @@ private:
     friend class Ray;
 
 public:
-    Face();                                                         //default constructor
-    Face(const Face&);                                              //copy constructor
-    Face(const Vector3D&, const Vector3D&, const Vector3D&);        //position and axes
-    Face& operator=(const Face&);
+    Face();                                                                         //default constructor
+    Face(const Face& face);                                                         //copy constructor
+    Face(const Vector3D& center, const Vector3D& axis1, const Vector3D& axis2);     //position and axes
+    Face& operator=(const Face& rhs);
 
-    Face& translate(const Vector3D&);
-    Face& rotate(const RotationMatrix&);
-    Face& scale(float, float);
+    Face& translate(const Vector3D& offset);
+    Face& rotate(const RotationMatrix& rotation);
+    Face& scale(float scalex, float scaley);
 
     Vector3D get_position() const;
     std::array<Vector3D, 2> get_axes() const;
@@ -126,12 +126,12 @@ private:
 
 public:
     Cube();
-    Cube(const Cube&);
-    Cube(const Vector3D&, const Vector3D&, const Vector3D&, const Vector3D&);
-    Cube& operator=(const Cube&);
+    Cube(const Cube& cube);
+    Cube(const Vector3D& center, const Vector3D& axis1, const Vector3D& axis2, const Vector3D& axis3);
+    Cube& operator=(const Cube& rhs);
 
-    Cube& translate(const Vector3D&);
-    Cube& rotate(const RotationMatrix&);
+    Cube& translate(const Vector3D& offset);
+    Cube& rotate(const RotationMatrix& rotation);
 
     Vector3D get_pos() const;
     std::array<Vector3D, 3> get_axes() const;
@@ -142,7 +142,7 @@ class Sky
 {
 public:
     float avg_color = .2;
-    float get_color(const Vector3D&) const;
+    float get_color(const Vector3D& view_direction) const;
 };
 
 class Ray
@@ -152,18 +152,18 @@ private:
     Vector3D direction;
 public:
     Ray();
-    Ray(const Ray&);
-    Ray(const Vector3D&, const Vector3D&);
-    Ray& operator=(const Ray&);
+    Ray(const Ray& ray);
+    Ray(const Vector3D& origin, const Vector3D& direction);
+    Ray& operator=(const Ray& rhs);
 
-    bool intersects(const Face&) const;
-    int get_intersection(const Cube&) const;
-    float get_color(const Face&, const Vector3D&, const Sky&) const;
+    bool intersects(const Face& face) const;
+    int get_intersection(const Cube& cube) const;
+    float get_color(const Face& face, const Vector3D& sun_direction, const Sky& sky) const;
 
     Vector3D get_origin() const;
     Vector3D get_direction() const;
-    void set_origin(const Vector3D&);
-    void set_direction(const Vector3D&);
+    void set_origin(const Vector3D& origin);
+    void set_direction(const Vector3D& direction);
 };
 
 class Camera
@@ -177,12 +177,12 @@ private:
     void generate_screenspace_basis();
 public:
     Camera();
-    Camera(const Camera&);
-    Camera(int, int, const Vector3D&, const Vector3D&, float, float);
-    Camera& operator=(const Camera&);
+    Camera(const Camera& camera);
+    Camera(int resx, int resy, const Vector3D& origin, const Vector3D& direction, float fov, float aspect_ratio);
+    Camera& operator=(const Camera& rhs);
 
-    Camera& translate(const Vector3D&);
-    Camera& rotate(const RotationMatrix&);
+    Camera& translate(const Vector3D& offset);
+    Camera& rotate(const RotationMatrix& rotation);
 
     int get_xres() const;
     int get_yres() const;
@@ -191,8 +191,8 @@ public:
     std::array<Vector3D, 2> get_axes() const;
     std::array<Vector3D, 2> get_screenspace_basis() const;
 
-    Ray get_pixel_ray(int, int) const;
-    std::ostringstream snapshot(const Cube&, const Vector3D&, const Sky&) const;
+    Ray get_pixel_ray(int x, int y) const;
+    std::ostringstream snapshot(const Cube& cube, const Vector3D& sun_direction, const Sky& sky) const;
 };
 
 #endif
